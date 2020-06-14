@@ -1,0 +1,167 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\CreateVotingRequest;
+use App\Http\Requests\UpdateVotingRequest;
+use App\Repositories\VotingRepository;
+use App\Http\Controllers\AppBaseController;
+use Illuminate\Http\Request;
+use App\Models\Vote;
+use App\Models\Nomination;
+use Auth;
+use Flash;
+use Response;
+
+class VotingController extends AppBaseController
+{
+    /** @var  VotingRepository */
+    private $votingRepository;
+
+    public function __construct(VotingRepository $votingRepo)
+    {
+        $this->votingRepository = $votingRepo;
+    }
+
+    /**
+     * Display a listing of the Voting.
+     *
+     * @param Request $request
+     *
+     * @return Response
+     */
+    public function index(Request $request)
+    {
+        $votings = $this->votingRepository->all();
+
+        return view('votings.index')
+            ->with('votings', $votings);
+    }
+
+    /**
+     * Show the form for creating a new Voting.
+     *
+     * @return Response
+     */
+    public function create()
+    {
+        return view('votings.create');
+    }
+
+    /**
+     * Store a newly created Voting in storage.
+     *
+     * @param CreateVotingRequest $request
+     *
+     * @return Response
+     */
+    public function store(CreateVotingRequest $request)
+    {
+        //if (Auth::check()){
+
+            $user_id = Auth::user()->id;
+            $input = $request->all();
+            $input['user_id'] = $user_id;
+            $votesCount = Nomination::where('id', $input['nomination_id'])->first();
+            $updatedVotes = Nomination::where('id', $input['nomination_id'])->update([
+                'no_of_votes' => $votesCount->no_of_votes + 1
+            ]);
+            $this->votingRepository->create($input);
+
+            Flash::success('Voting saved successfully.');
+        //}
+            //return redirect(route('votings.index'));
+        return redirect()->back();
+    }
+
+    /**
+     * Display the specified Voting.
+     *
+     * @param int $id
+     *
+     * @return Response
+     */
+    public function show($id)
+    {
+        $voting = $this->votingRepository->find($id);
+
+        if (empty($voting)) {
+            Flash::error('Voting not found');
+
+            return redirect(route('votings.index'));
+        }
+
+        return view('votings.show')->with('voting', $voting);
+    }
+
+    /**
+     * Show the form for editing the specified Voting.
+     *
+     * @param int $id
+     *
+     * @return Response
+     */
+    public function edit($id)
+    {
+        $voting = $this->votingRepository->find($id);
+
+        if (empty($voting)) {
+            Flash::error('Voting not found');
+
+            return redirect(route('votings.index'));
+        }
+
+        return view('votings.edit')->with('voting', $voting);
+    }
+
+    /**
+     * Update the specified Voting in storage.
+     *
+     * @param int $id
+     * @param UpdateVotingRequest $request
+     *
+     * @return Response
+     */
+    public function update($id, UpdateVotingRequest $request)
+    {
+        $voting = $this->votingRepository->find($id);
+
+        if (empty($voting)) {
+            Flash::error('Voting not found');
+
+            return redirect(route('votings.index'));
+        }
+
+        $voting = $this->votingRepository->update($request->all(), $id);
+
+        Flash::success('Voting updated successfully.');
+
+        return redirect(route('votings.index'));
+    }
+
+    /**
+     * Remove the specified Voting from storage.
+     *
+     * @param int $id
+     *
+     * @throws \Exception
+     *
+     * @return Response
+     */
+    public function destroy($id)
+    {
+        $voting = $this->votingRepository->find($id);
+
+        if (empty($voting)) {
+            Flash::error('Voting not found');
+
+            return redirect(route('votings.index'));
+        }
+
+        $this->votingRepository->delete($id);
+
+        Flash::success('Voting deleted successfully.');
+
+        return redirect(route('votings.index'));
+    }
+}
