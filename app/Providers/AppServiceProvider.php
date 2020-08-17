@@ -32,10 +32,12 @@ class AppServiceProvider extends ServiceProvider
         if( $currentTime->gt($setting->nomination_start_date) && $currentTime->lt($setting->nomination_end_date) ){
             View::share('isNominationPeriod','yes');
             View::share('isVotingPeriod','no');
+            View::share('setting', $setting);
         }else{
             View::share('isNominationPeriod','no');
             if( $currentTime->gt($setting->voting_start_date) && $currentTime->lt($setting->voting_end_date) ) {
                 View::share('isVotingPeriod', 'yes');
+                View::share('setting', $setting);
             }else{
                 View::share('isVotingPeriod','no');
                 View::share('isNominationPeriod','no');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
+use App\Models\Category;
 use App\Repositories\CategoryRepository;
 use App\Http\Controllers\AppBaseController;
 use Illuminate\Http\Request;
@@ -35,6 +36,10 @@ class CategoryController extends AppBaseController
     {
         $categories = $this->categoryRepository->all();
 
+        if (Auth::user()->role_id == 4){
+            return view('categories.election-index')
+                ->with('categories', $categories);
+        }
         return view('categories.index')
             ->with('categories', $categories);
     }
@@ -63,17 +68,20 @@ class CategoryController extends AppBaseController
            'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:5048',
         ]);
         $image = $request->file('image');
-        $imageName = $image->getClientOriginalName();
-
         $input = $request->all();
-        $input['image']= $imageName;
         $input['user_id'] = Auth::user()->id;
-        $category = $this->categoryRepository->create($input);
 
-        if ($category){
+        if ($image != null) {
+            $imageName = $image->getClientOriginalName();
+            $input['image']= $imageName;
             $destPath = public_path('storage/upload/images/category');
+        }
+
+        $category = $this->categoryRepository->create($input);
+        if ($category && $image != null){
             $image->move($destPath, $category->id."_".$imageName);
         }
+
 
         Flash::success('Category saved successfully.');
 
@@ -89,7 +97,6 @@ class CategoryController extends AppBaseController
      */
     public function show($id)
     {
-
         $category = $this->categoryRepository->find($id);
         if (empty($category)) {
             Flash::error('Category not found');
@@ -117,14 +124,23 @@ class CategoryController extends AppBaseController
             $hasNominatedBefore = 1;
         }
 
-        return view('categories.show')->with('category', $category)
+        $nextCat = Category::where('id','>', $category->id)->first();
+        $prevCat = Category::where('id','<', $category->id)->orderBy('id','desc')->first();
+        $view = 'categories.show';
+        if (Auth::user()->role_id == 4){
+            $view='categories.election-show';
+        }
+
+        return view($view)->with('category', $category)
             ->with('totalVotes',$totalVotes)
             ->with('checkVoted',$checkVoted)
             ->with('nomination',$nomination)
             ->with('hasNominatedBefore',$hasNominatedBefore)
             ->with('nominations', $nominations)
             ->with('nominationsSelected',$nominationsSelected)
-            ->with('sum_no_of_nominations',$sum_no_of_nominations);
+            ->with('sum_no_of_nominations',$sum_no_of_nominations)
+            ->with('nextCat',$nextCat)
+            ->with('prevCat',$prevCat);
         /*return view('categories.show')->with('category', $category)
             ->with('totalVotes',$totalVotes)
             ->with('checkVoted',$checkVoted)
@@ -175,18 +191,21 @@ class CategoryController extends AppBaseController
         $this->validate($request,[
             'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:5048',
         ]);
+
         $image = $request->file('image');
-        $imageName = $image->getClientOriginalName();
-
         $input = $request->all();
-        $input['image']= $imageName;
         $input['user_id'] = Auth::user()->id;
-        $category = $this->categoryRepository->update($input, $id);
 
-        if ($category){
-            $destPath = public_path('storage/upload/images/category');
-            $image->move($destPath, $category->id."_".$imageName);
+        if ($image != null) {
+            $imageName = $image->getClientOriginalName();
+            $input['image']= $imageName;
+            if ($category){
+                $destPath = public_path('storage/upload/images/category');
+                $image->move($destPath, $category->id."_".$imageName);
+            }
         }
+
+        $category = $this->categoryRepository->update($input, $id);
 
         Flash::success('Category updated successfully.');
 

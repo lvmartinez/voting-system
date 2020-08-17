@@ -19,11 +19,17 @@ use Illuminate\Support\Facades\Route;
 
 Auth::routes();
 
-Route::get('/home', 'HomeController@index')->name('home');
+Route::get('/home', 'CategoryController@index')->name('home');
 
 Auth::routes(['verify' => true]);
 
-Route::get('/home', 'HomeController@index')->middleware('verified');
+Route::get('/login', function(){
+   return view('election-home');
+})->name('login');
+
+Route::get('/home', 'CategoryController@index')->middleware('verified');
+
+Route::get('/', 'CategoryController@index')->middleware('auth');
 
 //1
 //only admin and moderator can access

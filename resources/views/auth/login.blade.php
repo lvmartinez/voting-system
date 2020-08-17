@@ -1,12 +1,23 @@
-@extends('layouts.logged-out')
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
-@section('content')
+<!-- Ionicons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
+
+<!-- Theme style -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/2.4.3/css/AdminLTE.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/2.4.3/css/skins/_all-skins.min.css">
+
+<!-- iCheck -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/iCheck/1.0.2/skins/square/_all.css">
+
+@section('login')
 <div class="login-box">
     <div class="login-logo">
-        <a href="{{ url('/home') }}"><b>@if ($isNominationPeriod == 'yes' && $isVotingPeriod == 'no') Nomination
+        <b>@if ($isNominationPeriod == 'yes' && $isVotingPeriod == 'no') Nomination
                 @elseif($isVotingPeriod == 'yes') Voting
                 @else Nomination and Voting
-                @endif </b>Platform</a>
+                @endif </b>Platform
     </div>
 
     <!-- /.login-logo -->

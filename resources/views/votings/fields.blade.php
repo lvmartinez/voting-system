@@ -20,7 +20,6 @@
 {!! Form::hidden('nomination_id', $nomination->id ?? null, ['class' => 'form-control']) !!}
 
 <!-- Submit Field -->
-<div class="form-group col-sm-12">
-    {!! Form::submit('Vote', ['class' => 'btn btn-success btn-block']) !!}
+
+    {!! Form::submit('Vote', ['class' => 'btn btn-success']) !!}
     <!-- <a href="{{ route('votings.index') }}" class="btn btn-default">Cancel</a> -->
-</div>

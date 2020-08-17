@@ -86,14 +86,20 @@ class NominationController extends AppBaseController
             $this->validate($request,[
                 'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:5048',
             ]);
+
             $image = $request->file('image');
-            $imageName = $image->getClientOriginalName();
-            $input['image']= $imageName;
+            $input = $request->all();
+            $input['user_id'] = Auth::user()->id;
+
+            if ($image != null) {
+                $imageName = $image->getClientOriginalName();
+                $input['image']= $imageName;
+                $destPath = public_path('storage/upload/images/nomination');
+            }
 
             $nomination = $this->nominationRepository->create($input);
 
-            if ($nomination){
-                $destPath = public_path('storage/upload/images/nomination');
+            if ($nomination && $image != null){
                 $image->move($destPath, $nomination->id."_".$imageName);
             }
 
@@ -176,18 +182,21 @@ class NominationController extends AppBaseController
             'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:5048',
         ]);
 
-        $input = $request->all();
+
         $image = $request->file('image');
-        $imageName = $image->getClientOriginalName();
-        $input['image']= $imageName;
+        $input = $request->all();
         $input['user_id'] = Auth::user()->id;
 
-        $nomination = $this->nominationRepository->update($input, $id);
-
-        if ($nomination){
-            $destPath = public_path('storage/upload/images/nomination');
-            $image->move($destPath, $nomination->id."_".$imageName);
+        if ($image != null) {
+            $imageName = $image->getClientOriginalName();
+            $input['image']= $imageName;
+            if ($nomination){
+                $destPath = public_path('storage/upload/images/nomination');
+                $image->move($destPath, $nomination->id."_".$imageName);
+            }
         }
+
+        $nomination = $this->nominationRepository->update($input, $id);
 
         Flash::success('Nomination updated successfully.');
 
